@@ -1,5 +1,7 @@
 package milkstgo.backend.services;
 
+import milkstgo.backend.exceptions.AlreadyExistsException;
+import milkstgo.backend.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import milkstgo.backend.entities.ProveedorEntity;
@@ -8,6 +10,7 @@ import milkstgo.backend.repositories.ProveedorRepository;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProveedorService {
@@ -25,27 +28,59 @@ public class ProveedorService {
         return proveedorRepository.save(proveedor);
     }
 
+    public ProveedorEntity actualizarProveedor(Long id, String codigo, String nombre, String categoria, String retencion) {
+        ProveedorEntity proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("El proveedor no se encuentra registrado"));
+
+
+        if(!codigo.equals(proveedor.getCodigo()) && proveedorRepository.existsByCodigo(codigo)) {
+            throw new AlreadyExistsException("Ya se encuentra registrado un proveedor con el codigo otorgado");
+        }
+        validarCodigo(codigo);
+        validarCategoria(categoria);
+        validarRetencion(retencion);
+
+        proveedor.setCodigo(codigo);
+        proveedor.setNombre(nombre);
+        proveedor.setCategoria(categoria);
+        proveedor.setRetencion(retencion);
+        return proveedorRepository.save(proveedor);
+    }
+
     public void validarDatosProveedor(String codigo, String categoria, String retencion){
+        validarCodigo(codigo);
+        validarCategoria(categoria);
+        validarRetencion(retencion);
+
+        if (proveedorRepository.existsByCodigo(codigo)) {
+            throw new IllegalArgumentException("El proveedor ya se encuentra registrado");
+        }
+    }
+
+    public void validarCodigo(String codigo) {
         //Verificacion de un codigo correcto (5 digitos numericos)
+
         try {
             Integer codigoInt = Integer.parseInt(codigo);
             if (codigo.length() != 5 || codigoInt < 0) {
-                throw new NumberFormatException("El codigo tiene que ser de 5 digitos numericos");
+                throw new IllegalArgumentException("El codigo tiene que ser de 5 digitos numericos");
             }
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("El codigo tiene que ser de 5 digitos numericos");
+            throw new IllegalArgumentException("El codigo tiene que ser de 5 digitos numericos");
         }
+    }
+
+    public void validarCategoria(String categoria) {
         //Verificacion de categorias validas establecidas
         if (!Arrays.asList(CATEGORIAS_VALIDAS).contains(categoria)) {
             throw new IllegalArgumentException("La categoria ingresada no es valida");
         }
+    }
+
+    public void validarRetencion(String retencion) {
         //Verificacion de valores validos para retencion
         if (!retencion.equals("Si") && !retencion.equals("No")) {
             throw new IllegalArgumentException("El afecto a retencion ingresado no es valido");
-        }
-
-        if (proveedorRepository.findById(codigo).isPresent()) {
-            throw new IllegalArgumentException("El proveedor ya se encuentra registrado");
         }
     }
 
@@ -54,6 +89,6 @@ public class ProveedorService {
     }
 
     public boolean existeProveedor(ProveedorEntity proveedor) {
-        return proveedorRepository.existsById(proveedor.getCodigo());
+        return proveedorRepository.existsByCodigo(proveedor.getCodigo());
     }
 }

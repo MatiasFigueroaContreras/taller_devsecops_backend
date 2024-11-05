@@ -16,17 +16,22 @@ public class ProveedorController {
     ProveedorService proveedorService;
 
     @PostMapping
-    public ResponseEntity create(@RequestParam("codigo") String codigo,
+    public ResponseEntity<ProveedorEntity> create(@RequestParam("codigo") String codigo,
                                  @RequestParam("nombre") String nombre,
                                  @RequestParam("categoria") String categoria,
                                  @RequestParam("retencion") String retencion) {
-        try {
-            ProveedorEntity proveedor = proveedorService.registrarProveedor(codigo, nombre, categoria, retencion);
-            return ResponseEntity.ok(proveedor);
-        }
-        catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        ProveedorEntity proveedor = proveedorService.registrarProveedor(codigo, nombre, categoria, retencion);
+        return ResponseEntity.ok(proveedor);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProveedorEntity> update(@PathVariable("id") Long id,
+                                                  @RequestParam("codigo") String codigo,
+                                                  @RequestParam("nombre") String nombre,
+                                                  @RequestParam("categoria") String categoria,
+                                                  @RequestParam("retencion") String retencion) {
+        ProveedorEntity proveedor = proveedorService.actualizarProveedor(id, codigo, nombre, categoria, retencion);
+        return ResponseEntity.ok(proveedor);
     }
 
     @GetMapping
