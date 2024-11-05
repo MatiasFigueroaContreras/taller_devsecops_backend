@@ -1,5 +1,6 @@
 package milkstgo.backend.controllers;
 
+import milkstgo.backend.exceptions.AlreadyExistsException;
 import milkstgo.backend.services.AcopioLecheService;
 import milkstgo.backend.services.PagoService;
 import milkstgo.backend.services.QuincenaService;
@@ -28,20 +29,15 @@ public class AcopioLecheController {
     public ResponseEntity<String> importarAcopioLeche(@RequestParam("file")MultipartFile file,
                                                       @RequestParam("year") Integer year,
                                                       @RequestParam("mes") Integer mes,
-                                                      @RequestParam("quincena") Integer numero,
-                                                      RedirectAttributes redirectAttr) {
+                                                      @RequestParam("quincena") Integer numero) {
         QuincenaEntity quincena = quincenaService.ingresarQuincena(year, mes, numero);
         if(pagoService.existenPagosPorQuincena(quincena)){
-            return ResponseEntity.badRequest().body("Ya existen datos calculados para la quincena seleccionada");
+            throw new AlreadyExistsException("Ya existen datos calculados para la quincena seleccionada");
         }
 
-        try {
-            List<AcopioLecheEntity> acopiosLeche = acopioLecheService.leerExcel(file);
-            acopioLecheService.validarListaAcopioLecheQuincena(acopiosLeche, quincena);
-            acopioLecheService.guardarAcopiosLeches(acopiosLeche);
-            return ResponseEntity.ok("Datos registrados correctamente!");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        List<AcopioLecheEntity> acopiosLeche = acopioLecheService.leerExcel(file);
+        acopioLecheService.validarListaAcopioLecheQuincena(acopiosLeche, quincena);
+        acopioLecheService.guardarAcopiosLeches(acopiosLeche);
+        return ResponseEntity.ok("Datos registrados correctamente!");
     }
 }

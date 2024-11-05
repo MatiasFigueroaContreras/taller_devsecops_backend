@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AlreadyExistsException.class)
     public ResponseEntity<ErrorMessage> handleAlreadyExistsException(AlreadyExistsException ex) {
         ErrorMessage message = new ErrorMessage(
-                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage()
         );
         return new ResponseEntity<ErrorMessage>(message, HttpStatus.BAD_REQUEST);

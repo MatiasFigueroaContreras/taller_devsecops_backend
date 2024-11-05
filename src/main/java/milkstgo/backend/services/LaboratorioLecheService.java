@@ -28,6 +28,8 @@ public class LaboratorioLecheService {
 
     public void guardarDatosLaboratorioLeche(LaboratorioLecheEntity laboratorioLeche) {
         String codigoProveedor = laboratorioLeche.getProveedor().getCodigo();
+        ProveedorEntity proveedor = proveedorService.obtenerProveedorPorCodigo(codigoProveedor);
+        laboratorioLeche.setProveedor(proveedor);
         String quincena = laboratorioLeche.getQuincena().toString();
         String id = codigoProveedor + "-" + quincena;
         laboratorioLeche.setId(id);

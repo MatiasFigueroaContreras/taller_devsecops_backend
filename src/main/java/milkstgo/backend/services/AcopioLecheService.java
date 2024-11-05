@@ -30,6 +30,8 @@ public class AcopioLecheService {
 
     public void guardarAcopioLeche(AcopioLecheEntity acopioLeche) {
         String codigoProveedor = acopioLeche.getProveedor().getCodigo();
+        ProveedorEntity proveedor = proveedorService.obtenerProveedorPorCodigo(codigoProveedor);
+        acopioLeche.setProveedor(proveedor);
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         String fecha = dateFormat.format(acopioLeche.getFecha());
         String turno = acopioLeche.getTurno();

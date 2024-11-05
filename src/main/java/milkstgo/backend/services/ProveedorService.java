@@ -91,4 +91,9 @@ public class ProveedorService {
     public boolean existeProveedor(ProveedorEntity proveedor) {
         return proveedorRepository.existsByCodigo(proveedor.getCodigo());
     }
+
+    public ProveedorEntity obtenerProveedorPorCodigo(String codigo) {
+        return proveedorRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el proveedor con el codigo"));
+    }
 }
