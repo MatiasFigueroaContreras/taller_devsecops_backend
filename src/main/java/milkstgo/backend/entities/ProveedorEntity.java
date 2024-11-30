@@ -1,5 +1,6 @@
 package milkstgo.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,9 @@ public class ProveedorEntity {
     private String nombre;
     private String categoria;
     private String retencion;
+    @Column(name = "is_deleted")
+    @JsonIgnore
+    private Boolean isDeleted;
 
     public boolean estaAfectoARetencion(){
         return retencion.equals("Si");

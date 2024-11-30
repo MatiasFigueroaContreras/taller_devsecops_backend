@@ -42,4 +42,10 @@ public class ProveedorController {
         }
         return ResponseEntity.ok(proveedores);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable("id") Long id) {
+        proveedorService.eliminarProveedor(id);
+        return ResponseEntity.ok("");
+    }
 }

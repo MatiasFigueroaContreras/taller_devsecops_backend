@@ -25,6 +25,7 @@ public class ProveedorService {
         proveedor.setNombre(nombre);
         proveedor.setCategoria(categoria);
         proveedor.setRetencion(retencion);
+        proveedor.setIsDeleted(false);
         return proveedorRepository.save(proveedor);
     }
 
@@ -32,6 +33,9 @@ public class ProveedorService {
         ProveedorEntity proveedor = proveedorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("El proveedor no se encuentra registrado"));
 
+        if(proveedor.getIsDeleted().booleanValue()) {
+            throw new NotFoundException("El proveedor se encuentra eliminado");
+        }
 
         if(!codigo.equals(proveedor.getCodigo()) && proveedorRepository.existsByCodigo(codigo)) {
             throw new AlreadyExistsException("Ya se encuentra registrado un proveedor con el codigo otorgado");
@@ -52,7 +56,7 @@ public class ProveedorService {
         validarCategoria(categoria);
         validarRetencion(retencion);
 
-        if (proveedorRepository.existsByCodigo(codigo)) {
+        if (proveedorRepository.existsByCodigoAndIsDeletedFalse(codigo)) {
             throw new IllegalArgumentException("El proveedor ya se encuentra registrado");
         }
     }
@@ -85,15 +89,23 @@ public class ProveedorService {
     }
 
     public List<ProveedorEntity> obtenerProveedores() {
-        return new ArrayList<>(proveedorRepository.findAll());
+        return new ArrayList<>(proveedorRepository.findAllByIsDeletedFalse());
     }
 
     public boolean existeProveedor(ProveedorEntity proveedor) {
-        return proveedorRepository.existsByCodigo(proveedor.getCodigo());
+        return proveedorRepository.existsByCodigoAndIsDeletedFalse(proveedor.getCodigo());
     }
 
     public ProveedorEntity obtenerProveedorPorCodigo(String codigo) {
-        return proveedorRepository.findByCodigo(codigo)
+        return proveedorRepository.findByCodigoAndIsDeletedFalse(codigo)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el proveedor con el codigo"));
+    }
+
+    public void eliminarProveedor(Long id) {
+        ProveedorEntity proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("El proveedor no se encuentra registrado"));
+
+        proveedor.setIsDeleted(true);
+        proveedorRepository.save(proveedor);
     }
 }
