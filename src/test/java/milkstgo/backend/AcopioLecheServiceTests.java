@@ -38,7 +38,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test para guardar lista de acopios leche, el cual a su vez utiliza guardar acopio leche
     void testGuardarAcopiosLeche(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
 
         AcopioLecheEntity acopioLeche1 = new AcopioLecheEntity();
@@ -67,7 +67,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test para verificar el funcionamiento de obtener acopios leche por proveedor y quincena
     void testObtenerAcopiosLechePorProveedorQuincena(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
 
         when(acopioLecheRepositoryMock.findAllByProveedorAndQuincena(proveedor, quincena)).thenReturn(new ArrayList<>());
@@ -94,7 +94,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test validar lista acopio leche quincena con el caso de acopios validos
     void testValidarListaAcopioLecheQuincena() throws Exception {
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
@@ -122,7 +122,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener un turno no valido
     void testValidarAcopioLecheTurnoInvalido(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
 
         AcopioLecheEntity acopioLeche = new AcopioLecheEntity();
@@ -143,7 +143,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener kilos de leche no valido
     void testValidarAcopioLecheKlsLecheInvalido(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
 
         AcopioLecheEntity acopioLeche = new AcopioLecheEntity();
@@ -164,7 +164,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener una fecha no valida
     void testValidarAcopioLecheFechaInvalida() throws Exception{
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2022/03/1", 2022, 03, 1);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
@@ -186,7 +186,7 @@ class AcopioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener un proveedor no registrado
     void testValidarAcopioLecheProveedorNoRegistrado() throws Exception{
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 

@@ -33,7 +33,7 @@ class PagoServiceTests {
 
     @Test
     void testObtenerPagos(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 3, 1);
         PagoEntity pago1 = new PagoEntity("12345-2023/03/1", 500000, 12000, 3500, 20000, 150, 0, 0, 535350, 0, 535350, proveedor, quincena, new DatosCentroAcopioEntity());
         PagoEntity pago2 = new PagoEntity("12345-2023/02/2", 500000, 12000, 3500, 20000, 150, 0, 0, 535350, 0, 535350, proveedor, quincena.obtenerQuincenaAnterior(), new DatosCentroAcopioEntity());
@@ -48,8 +48,8 @@ class PagoServiceTests {
 
     @Test
     void testObtenerPagosPorQuincena(){
-        ProveedorEntity proveedor1 = new ProveedorEntity("12345", "Proveedor 1", "A", "Si");
-        ProveedorEntity proveedor2 = new ProveedorEntity("54321", "Proveedor 2", "C", "Si");
+        ProveedorEntity proveedor1 = new ProveedorEntity(1L, "12345", "Proveedor 1", "A", "Si", false);
+        ProveedorEntity proveedor2 = new ProveedorEntity(2L, "54321", "Proveedor 2", "C", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 3, 1);
         PagoEntity pago1 = new PagoEntity("12345-2023/03/1", 500000, 12000, 3500, 20000, 150, 0, 0, 535350, 0, 535350, proveedor1, quincena, new DatosCentroAcopioEntity());
         PagoEntity pago2 = new PagoEntity("54321-2023/03/1", 500000, 12000, 3500, 20000, 150, 0, 0, 535350, 0, 535350, proveedor2, quincena, new DatosCentroAcopioEntity());
@@ -76,8 +76,8 @@ class PagoServiceTests {
 
     @Test
     void testGuardarPagos(){
-        ProveedorEntity proveedor1 = new ProveedorEntity("12345", "Proveedor 1", "A", "Si");
-        ProveedorEntity proveedor2 = new ProveedorEntity("54321", "Proveedor 2", "C", "Si");
+        ProveedorEntity proveedor1 = new ProveedorEntity(1L, "12345", "Proveedor 1", "A", "Si", false);
+        ProveedorEntity proveedor2 = new ProveedorEntity(2L, "54321", "Proveedor 2", "C", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 3, 1);
         PagoEntity pago1 = new PagoEntity("", 500000, 12000, 3500, 20000, 150, 0, 0, 535350, 0, 535350, proveedor1, quincena, new DatosCentroAcopioEntity());
         PagoEntity pago2 = new PagoEntity("", 500000, 12000, 3500, 20000, 150, 0, 0, 535350, 0, 535350, proveedor2, quincena, new DatosCentroAcopioEntity());
@@ -93,7 +93,7 @@ class PagoServiceTests {
     @Test
     void testCalcularPagos(){
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity("12345-2023/03/1", 25, 32, proveedor, quincena);
         DatosCentroAcopioEntity datosCentroAcopio = new DatosCentroAcopioEntity(
                 proveedor.getCodigo() + "-2023/02/2",
@@ -120,7 +120,7 @@ class PagoServiceTests {
     @ParameterizedTest
     @CsvSource({"A, 700", "B, 550", "C, 400", "D, 250"})
     void testCalcularPagoLecheCategorias(String categoria, int pago){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", categoria, "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", categoria, "Si", false);
         DatosCentroAcopioEntity datosCentroAcopio = new DatosCentroAcopioEntity();
         Integer klsTotal = 1000;
         datosCentroAcopio.setTotalKlsLeche(klsTotal);
@@ -232,7 +232,7 @@ class PagoServiceTests {
 
     @Test
     void testCalcularMontoRetencionPagaRetencion(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         PagoEntity pago = new PagoEntity();
         pago.setPagoTotal(1000000);
         pago.setProveedor(proveedor);
@@ -243,7 +243,7 @@ class PagoServiceTests {
 
     @Test
     void testCalcularMontoRetencionNoPagaRetencion(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "No");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "No", false);
         PagoEntity pago = new PagoEntity();
         pago.setPagoTotal(1000000);
         pago.setProveedor(proveedor);

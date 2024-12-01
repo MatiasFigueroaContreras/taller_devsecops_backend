@@ -43,7 +43,7 @@ class DatosCentroAcopioServiceTests {
 
     @Test
     void testGuardarListaDatosCA(){
-        ProveedorEntity proveedor1 = new ProveedorEntity("12345", "Proveedor 1", "A", "Si");
+        ProveedorEntity proveedor1 = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
         LaboratorioLecheEntity grasaSolidoTotal1 = new LaboratorioLecheEntity("12345-2023/03/1", 25, 32, proveedor1, quincena);
         DatosCentroAcopioEntity datosCentroAcopio1 = new DatosCentroAcopioEntity();
@@ -58,7 +58,7 @@ class DatosCentroAcopioServiceTests {
         datosCentroAcopio1.setProveedor(proveedor1);
         datosCentroAcopio1.setQuincena(quincena);
 
-        ProveedorEntity proveedor2 = new ProveedorEntity("54321", "Proveedor 2", "A", "Si");
+        ProveedorEntity proveedor2 = new ProveedorEntity(2L, "54321", "Proveedor 2", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal2 = new LaboratorioLecheEntity("54321-2023/03/1", 25, 32, proveedor2, quincena);
         DatosCentroAcopioEntity datosCentroAcopio2 = new DatosCentroAcopioEntity();
         datosCentroAcopio2.setDiasEnvioMyT(10);
@@ -87,7 +87,7 @@ class DatosCentroAcopioServiceTests {
     // y solo un caso de calcularVariacionesDatosCA y obtenerDatosCAPorProveedorQuincena
     void testCalcularDatosCAPorQuincena() throws Exception {
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         AcopioLecheEntity acopioLeche1 = new AcopioLecheEntity(
                 proveedor.getCodigo() +  "-2023/03/01-" + "M",
@@ -149,7 +149,7 @@ class DatosCentroAcopioServiceTests {
     @Test
     void testCalcularDatosCAPorProveedorQuincenaKlsLeche0() {
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
 
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity("12345-2023/03/1", 0, 0, proveedor, quincena);
         DatosCentroAcopioEntity datosCaAnterior = new DatosCentroAcopioEntity(
@@ -179,7 +179,7 @@ class DatosCentroAcopioServiceTests {
     // anterior los cuales no fueron calculados.
     void testCalcularVariacionesDatosCADatosQuincenaAnteriorNoCalculados(){
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity("12345-2023/03/1", 25, 32, proveedor, quincena);
         DatosCentroAcopioEntity datosCentroAcopio = new DatosCentroAcopioEntity(
                 proveedor.getCodigo() + "-2023/02/2",
@@ -208,7 +208,7 @@ class DatosCentroAcopioServiceTests {
     //Test para para verificar el caso en que no existen datos para la quincena anterior
     void testCalcularVariacionesDatosCANoExistenDatosQuincenaAnterior() {
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity("12345-2023/03/1", 25, 32, proveedor, quincena);
         DatosCentroAcopioEntity datosCentroAcopio = new DatosCentroAcopioEntity(
                 proveedor.getCodigo() + "-2023/02/2",

@@ -37,7 +37,7 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test para guardar lista de grasa y solidos totales, el cual a su vez utiliza guardar grasa y solido total
     void testGuardarListaGrasasSolidosTotales(){
-        ProveedorEntity proveedor1 = new ProveedorEntity("12345", "Proveedor 1", "A", "Si");
+        ProveedorEntity proveedor1 = new ProveedorEntity(1L, "12345", "Proveedor 1", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
         LaboratorioLecheEntity grasaSolidoTotal1 = new LaboratorioLecheEntity();
         grasaSolidoTotal1.setPorcentajeGrasa(40);
@@ -45,7 +45,7 @@ class LaboratorioLecheServiceTests {
         grasaSolidoTotal1.setProveedor(proveedor1);
         grasaSolidoTotal1.setQuincena(quincena);
 
-        ProveedorEntity proveedor2 = new ProveedorEntity("54321", "Proveedor 2", "A", "Si");
+        ProveedorEntity proveedor2 = new ProveedorEntity(1L, "54321", "Proveedor 2", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal2 = new LaboratorioLecheEntity();
         grasaSolidoTotal2.setPorcentajeGrasa(60);
         grasaSolidoTotal2.setPorcentajeSolidoTotal(23);
@@ -64,13 +64,13 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test validar lista grasa y solidos totales para el caso exitoso
     void testValidarListaGrasasSolidosTotalesExitoso() {
-        ProveedorEntity proveedor1 = new ProveedorEntity("12345", "Proveedor 1", "A", "Si");
+        ProveedorEntity proveedor1 = new ProveedorEntity(1L, "12345", "Proveedor 1", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal1 = new LaboratorioLecheEntity();
         grasaSolidoTotal1.setPorcentajeGrasa(40);
         grasaSolidoTotal1.setPorcentajeSolidoTotal(35);
         grasaSolidoTotal1.setProveedor(proveedor1);
 
-        ProveedorEntity proveedor2 = new ProveedorEntity("54321", "Proveedor 2", "A", "Si");
+        ProveedorEntity proveedor2 = new ProveedorEntity(1L, "54321", "Proveedor 2", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal2 = new LaboratorioLecheEntity();
         grasaSolidoTotal2.setPorcentajeGrasa(60);
         grasaSolidoTotal2.setPorcentajeSolidoTotal(23);
@@ -89,7 +89,7 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener un porcentaje de grasa no valido
     void testValidarGrasaSolidoTotalGrasaInvalida(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity();
         grasaSolidoTotal.setPorcentajeGrasa(300);
         grasaSolidoTotal.setPorcentajeSolidoTotal(35);
@@ -106,7 +106,7 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener un porcentaje de solido total no valido
     void testValidarGrasaSolidoTotalSolidoTotalInvalido(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity();
         grasaSolidoTotal.setPorcentajeGrasa(60);
         grasaSolidoTotal.setPorcentajeSolidoTotal(260);
@@ -123,7 +123,7 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test para verificar que se lance una excepcion al tener un proveedor no registrado
     void testValidarGrasaSolidoTotalSolidoTotalProveedorNoRegistrado(){
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity();
         grasaSolidoTotal.setPorcentajeGrasa(60);
         grasaSolidoTotal.setPorcentajeSolidoTotal(20);
@@ -140,7 +140,7 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test para verificar el funcionamiento de obtener grasa solido total por proveedor y quincena
     void testObtenerGrasaSolidoTotalPorProveedorQuincena() {
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
         LaboratorioLecheEntity grasaSolidoTotal = new LaboratorioLecheEntity("12345-2023/03/1", 25, 32, proveedor, quincena);
 
@@ -152,7 +152,7 @@ class LaboratorioLecheServiceTests {
     @Test
     //Test para verificar el lancamiento de la excepcion de obtener grasa solido total por proveedor y quincena
     void testObtenerGrasaSolidoTotalPorProveedorQuincenaNoExiste() {
-        ProveedorEntity proveedor = new ProveedorEntity("12345", "Proveedor", "A", "Si");
+        ProveedorEntity proveedor = new ProveedorEntity(1L, "12345", "Proveedor", "A", "Si", false);
         QuincenaEntity quincena = new QuincenaEntity("2023/03/1", 2023, 03, 1);
 
         when(laboratorioLecheRepositoryMock.findByProveedorAndQuincena(proveedor, quincena)).thenReturn(Optional.empty());
