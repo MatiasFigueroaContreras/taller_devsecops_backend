@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-    stages {
+  stages {
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
@@ -11,7 +11,6 @@ pipeline {
         stage('Generar secrets.properties') {
             steps {
                 script {
-                    // Crear el archivo secrets.properties con los valores necesarios
                     writeFile file: 'secrets.properties', text: '''admin.password=password
                     admin.correo=correo@gmail.com
                     admin.nombre=nombre
@@ -24,36 +23,27 @@ pipeline {
 
         stage('Compilación') {
             steps {
-                script {
-                    sh 'pwd'  // Verifica que estás en el directorio correcto
-                    sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
-                    sh 'mvn -x clean install -DskipTests=true' 
-                }
+                sh 'pwd'  // Verifica que estás en el directorio correcto
+                sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
+                sh './mvnw clean install -DskipTests=true'  // Ejecuta Maven usando el script mvnw
             }
         }
 
         stage('Construir y Ejecutar contenedor') {
             steps {
-                script {
-            
-                    sh 'docker-compose up --build'  
-                }
+                sh 'docker-compose up --build'  // Construye y ejecuta el contenedor
             }
         }
 
         stage('Pruebas') {
             steps {
-                script {
-                    // Ejecutar las pruebas dentro del contenedor si es necesario
-                    sh './mvnw test'  // O puedes ejecutar pruebas en el contenedor según lo requieras
-                }
+                sh './mvnw test'  // Ejecuta las pruebas con Maven usando el script mvnw
             }
         }
     }
 
     post {
         always {
-            // Limpiar los contenedores después de las pruebas
             sh 'docker-compose down'  // Detener y eliminar los contenedores
             cleanWs()  // Limpiar el espacio de trabajo de Jenkins
         }
