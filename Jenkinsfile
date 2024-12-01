@@ -1,6 +1,9 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven_3.8.6'  
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -27,7 +30,7 @@ pipeline {
                 script {
                     sh 'pwd'  // Verifica que estás en el directorio correcto
                     sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
-                    sh './mvnw clean install -DskipTests=true' 
+                    sh 'mvn -x clean install -DskipTests=true' 
                 }
             }
         }
