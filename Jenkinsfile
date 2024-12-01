@@ -3,6 +3,7 @@ pipeline {
 
   tools {
         maven 'Maven3'  // Especifica el nombre de la instalación de Maven configurada en Jenkins
+        jdk 'jdk17'  
     }
     stages {
         stage('Checkout') {
