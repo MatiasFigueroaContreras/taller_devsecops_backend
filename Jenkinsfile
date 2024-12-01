@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-  stages {
+    stages {
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
@@ -11,6 +11,7 @@ pipeline {
         stage('Generar secrets.properties') {
             steps {
                 script {
+                    // Crear el archivo secrets.properties con los valores necesarios
                     writeFile file: 'secrets.properties', text: '''admin.password=password
                     admin.correo=correo@gmail.com
                     admin.nombre=nombre
@@ -23,28 +24,35 @@ pipeline {
 
         stage('Compilación') {
             steps {
-                sh 'pwd'  // Verifica que estás en el directorio correcto
-                sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
-                sh './mvnw clean install -DskipTests=true'  // Ejecuta Maven usando el script mvnw
+                script {
+                    bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
+                    bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
+                    bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
+                }
             }
         }
 
         stage('Construir y Ejecutar contenedor') {
             steps {
-                sh 'docker-compose up --build'  // Construye y ejecuta el contenedor
+                script {
+                    bat 'docker-compose up --build'  // Ejecuta docker-compose usando 'bat' en Windows
+                }
             }
         }
 
         stage('Pruebas') {
             steps {
-                sh './mvnw test'  // Ejecuta las pruebas con Maven usando el script mvnw
+                script {
+                    bat 'mvn test'  // Ejecuta las pruebas con Maven en Windows
+                }
             }
         }
     }
 
     post {
         always {
-            sh 'docker-compose down'  // Detener y eliminar los contenedores
+            // Limpiar los contenedores después de las pruebas
+            bat 'docker-compose down'  // Detener y eliminar los contenedores usando 'bat' en Windows
             cleanWs()  // Limpiar el espacio de trabajo de Jenkins
         }
     }
