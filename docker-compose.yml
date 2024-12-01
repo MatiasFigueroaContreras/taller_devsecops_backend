@@ -9,9 +9,7 @@ services:
       volumes:
         - ./nginx/conf.d:/etc/nginx/conf.d
       depends_on:
-        - app1
-        - app2
-        - app3
+        - milkstgo
 
   postgres-db:
     image: postgres
@@ -25,43 +23,16 @@ services:
     ports:
       - "5432:5432"
 
-  app1:
-    container_name: milkstgo1
-    image: matiasfc/milkstgo # Actualizar
+  milkstgo:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: milkstgo
+    container_name: milkstgo
     depends_on:
       - postgres-db
     ports:
-      - "8091:8090"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/milkstgo
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
-    deploy:
-      restart_policy:
-        condition: on-failure
-
-  app2:
-    container_name: milkstgo2
-    image: matiasfc/milkstgo # Actualizar
-    depends_on:
-      - postgres-db
-    ports:
-      - "8092:8090"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/milkstgo
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
-    deploy:
-      restart_policy:
-        condition: on-failure
-
-  app3:
-    container_name: milkstgo3
-    image: matiasfc/milkstgo # Actualizar
-    depends_on:
-      - postgres-db
-    ports:
-      - "8093:8090"
+      - "8090:8090"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/milkstgo
       - SPRING_DATASOURCE_USERNAME=postgres
