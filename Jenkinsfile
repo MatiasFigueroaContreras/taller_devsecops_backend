@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 
-                git 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend'  
+                checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
             }
         }
 
