@@ -25,6 +25,8 @@ pipeline {
         stage('Compilación') {
             steps {
                 script {
+                    sh 'pwd'  // Verifica que estás en el directorio correcto
+                    sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
                     sh './mvnw clean install -DskipTests=true' 
                 }
             }
@@ -33,8 +35,7 @@ pipeline {
         stage('Construir y Ejecutar contenedor') {
             steps {
                 script {
-                    sh 'pwd'  // Verifica que estás en el directorio correcto
-                    sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
+            
                     sh 'docker-compose up --build'  
                 }
             }
