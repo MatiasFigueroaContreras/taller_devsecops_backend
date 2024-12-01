@@ -1,16 +1,5 @@
 version: "3.8"
 services:
-  nginx:
-      image: nginx:latest
-      container_name: nginx-proxy
-      restart: always
-      ports:
-        - "80:80"
-      volumes:
-        - ./nginx/conf.d:/etc/nginx/conf.d
-      depends_on:
-        - milkstgo
-
   postgres-db:
     image: postgres
     restart: always
@@ -27,8 +16,8 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: milkstgo
-    container_name: milkstgo
+    image: milkstgo_backend
+    container_name: milkstgo_backend
     depends_on:
       - postgres-db
     ports:
