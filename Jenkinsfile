@@ -33,7 +33,8 @@ pipeline {
         stage('Construir y Ejecutar contenedor') {
             steps {
                 script {
-                    
+                    sh 'pwd'  // Verifica que estás en el directorio correcto
+                    sh 'ls -la'  // Verifica si mvnw está presente en el directorio actual
                     sh 'docker-compose up --build'  
                 }
             }
