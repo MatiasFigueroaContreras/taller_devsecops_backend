@@ -52,14 +52,32 @@ pipeline {
                 }
             }
         }
-            stage('Ejecutar OWASP ZAP') {
-                steps {
-                    script {
-                        // Ejecutar el escaneo de ZAP utilizando el comando adecuado
-                        bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl http://milkstgo:8090 -r report.html'
-                    }
+      stage('Ejecutar OWASP ZAP') {
+            steps {
+                script {
+                    // Ejecutar el escaneo de ZAP y generar un reporte en XML o HTML
+                    bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl http://milkstgo:8090 -quickout /zap/reports/zap-report.xml'
                 }
             }
+        }
+
+        stage('Generar Reporte HTML') {
+            steps {
+                script {
+                    // Convertir el reporte XML en un archivo HTML
+                    bat 'docker exec -t owasp_zap /zap/zap.sh -last_scan_report /zap/reports/zap-report.html'
+                }
+            }
+        }
+
+        stage('Copiar Reporte HTML') {
+            steps {
+                script {
+                    // Copiar el archivo de reporte HTML desde el contenedor a Jenkins
+                    bat 'docker cp owasp_zap:/zap/reports/zap-report.html %WORKSPACE%/zap-report.html'
+                }
+            }
+        }
 
     
     }
