@@ -26,6 +26,15 @@ pipeline {
             }
         }
 
+
+            stage('Docker Login') {
+            steps {
+                script {
+                    // Inicia sesión en Docker Hub
+                    bat 'docker login -u gaspitas241 -p morrowind241'
+                }
+            }
+        }
         stage('Compilación') {
             steps {
                 script {
