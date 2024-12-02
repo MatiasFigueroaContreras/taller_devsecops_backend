@@ -44,14 +44,6 @@ pipeline {
             }
         }
 
-           stage('Construir y Ejecutar contenedor') {
-            steps {
-                script {
-                    bat 'docker-compose up --build -d'  // Ejecuta docker-compose usando 'bat' en Windows
-                }
-            }
-        }
-
         // Etapa para esperar que ZAP esté listo
         stage('Esperar a que ZAP esté listo') {
             steps {
