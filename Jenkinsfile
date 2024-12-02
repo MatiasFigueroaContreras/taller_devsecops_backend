@@ -146,7 +146,7 @@ pipeline {
                         bat """
                             docker run --name owasp \
                             -v %cd%:/zap/wrk/:rw \
-                            -network="host" \
+                            --network="host" \
                             zaproxy/zap-stable \
                             zap-baseline.py \
                             -t $target \
@@ -157,7 +157,7 @@ pipeline {
                         bat """
                          docker run --name owasp \
                             -v %cd%:/zap/wrk/:rw \
-                            -network="host" \
+                            --network="host" \
                             zaproxy/zap-stable \
                             zap-api-scan.py \
                             -t $target \
@@ -168,7 +168,7 @@ pipeline {
                         bat """
                          docker run --name owasp \
                             -v %cd%:/zap/wrk/:rw \
-                            -network="host" \
+                            --network="host" \
                             zaproxy/zap-stable \
                             zap-full-scan.py \
                             -t $target \
