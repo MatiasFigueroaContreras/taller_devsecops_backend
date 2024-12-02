@@ -131,6 +131,7 @@ pipeline {
                 script {
                     bat 'docker pull ghcr.io/zaproxy/zaproxy:stable'
                     bat 'docker run -dt --name owasp ghcr.io/zaproxy/zaproxy:stable /bin/bash -p 9090:8080'
+                    bat 'docker exec owasp mkdir /zap/wrk'
                 }
             }
         }
@@ -143,7 +144,7 @@ pipeline {
                     echo "----> scan_type: $scan_type"
                     target = "${params.TARGET}"
                     if (scan_type == 'Baseline') {
-                        sh """
+                        bat """
                             docker exec owasp \
                             zap-baseline.py \
                             -t $target \
@@ -151,7 +152,7 @@ pipeline {
                             -I
                         """
                     } else if (scan_type == 'APIS') {
-                        sh """
+                        bat """
                             docker exec owasp \
                             zap-api-scan.py \
                             -t $target \
@@ -159,7 +160,7 @@ pipeline {
                             -I
                         """
                     } else if (scan_type == 'Full') {
-                        sh """
+                        bat """
                             docker exec owasp \
                             zap-full-scan.py \
                             -t $target \
@@ -176,7 +177,7 @@ pipeline {
         stage('Copy Report to Workspace') {
             steps {
                 script {
-                    sh '''
+                    bat '''
                         docker cp owasp:/zap/wrk/report.html ${WORKSPACE}/report.html
                     '''
                 }
