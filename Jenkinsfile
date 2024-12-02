@@ -52,15 +52,15 @@ pipeline {
                 }
             }
         }
-
-
-        stage('Ejecutar OWASP ZAP') {
-            steps {
-                script {
-                    bat 'docker exec -t owasp_zap zap-baseline.py -t http://localhost:8090'  
+            stage('Ejecutar OWASP ZAP') {
+                steps {
+                    script {
+                        // Ejecutar el escaneo de ZAP utilizando el comando adecuado
+                        bat 'docker exec -t owasp_zap zap -cmd -quickurl http://localhost:8090'
+                    }
                 }
             }
-        }
+
     
     }
 
