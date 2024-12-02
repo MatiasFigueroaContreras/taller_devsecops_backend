@@ -130,7 +130,7 @@ pipeline {
             steps {
                 script {
                     bat 'docker pull zaproxy/zap-stable'
-                    bat 'docker run -d --name owasp -v %cd%:/zap/wrk/:rw -p 9090:8080 -t zaproxy/zap-stable zap.sh -daemon -port 8080 -config api.disablekey=true'
+                    // bat 'docker run -d --name owasp -v %cd%:/zap/wrk/:rw -t zaproxy/zap-stable zap.sh -daemon -port 8080'
                 }
             }
         }
@@ -144,30 +144,36 @@ pipeline {
                     target = "${params.TARGET}"
                     if (scan_type == 'Baseline') {
                         bat """
-                            docker exec owasp \
-                            /zap/zap-baseline.py \
+                            docker run --name owasp \
+                            -v %cd%:/zap/wrk/:rw \
+                            -network="host" \
+                            zaproxy/zap-stable \
+                            zap-baseline.py \
                             -t $target \
                             -r report.html \
-                            -I \
-                            -dir /zap/
+                            -I 
                         """
                     } else if (scan_type == 'APIS') {
                         bat """
-                            docker exec owasp \
-                            /zap/zap-api-scan.py \
+                         docker run --name owasp \
+                            -v %cd%:/zap/wrk/:rw \
+                            -network="host" \
+                            zaproxy/zap-stable \
+                            zap-api-scan.py \
                             -t $target \
                             -r report.html \
-                            -I \
-                            -dir /zap/
+                            -I 
                         """
                     } else if (scan_type == 'Full') {
                         bat """
-                            docker exec owasp \
-                            /zap/zap-full-scan.py \
+                         docker run --name owasp \
+                            -v %cd%:/zap/wrk/:rw \
+                            -network="host" \
+                            zaproxy/zap-stable \
+                            zap-full-scan.py \
                             -t $target \
                             -r report.html \
-                            -I \
-                            -dir /zap/
+                            -I 
                         """
                     } else {
                         echo 'Something went wrong...'
