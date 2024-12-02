@@ -53,29 +53,6 @@ pipeline {
             }
         }
 
-        // Etapa para esperar que ZAP esté listo
-        stage('Esperar a que ZAP esté listo') {
-            steps {
-                script {
-                    // Intentar hasta 30 veces para ver si ZAP está listo
-                    def zapReady = false
-                    for (int i = 0; i < 30; i++) {
-                        try {
-                            def response = bat(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:8081", returnStdout: true).trim()
-                            if (response == "200") {
-                                zapReady = true
-                                break
-                            }
-                        } catch (Exception e) {
-                        }
-                        sleep(10)  
-                    }
-                    if (!zapReady) {
-                        error("ZAP no está disponible después de varios intentos.")
-                    }
-                }
-            }
-        }
 
         stage('Ejecutar OWASP ZAP') {
             steps {
