@@ -131,7 +131,7 @@ pipeline {
                 script {
                     bat 'docker pull ghcr.io/zaproxy/zaproxy:stable'
                     bat 'docker run -dt --name owasp ghcr.io/zaproxy/zaproxy:stable /bin/bash -p 9090:8080'
-                    bat 'docker exec owasp mkdir /zap/wrk'
+                    // bat 'docker exec owasp mkdir /zap/wrk'
                 }
             }
         }
@@ -192,7 +192,7 @@ pipeline {
             echo 'Deteniendo y eliminando contenedor del frontend'
             bat 'cd frontend && docker-compose down'
             echo 'Remover OWASP ZAP container'
-            sh '''
+            bat '''
                 docker stop owasp
                 docker rm owasp
             '''
