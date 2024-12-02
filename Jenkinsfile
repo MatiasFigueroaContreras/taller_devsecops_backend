@@ -77,7 +77,7 @@ pipeline {
     post {
         always {
             bat 'docker-compose down'  
-            cleanWs()  
+              
         }
     }
 }
