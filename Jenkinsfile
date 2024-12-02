@@ -5,12 +5,43 @@ pipeline {
         maven 'Maven3'  // Especifica el nombre de la instalación de Maven configurada en Jenkins
         jdk 'jdk17'  
     }
+
+     parameters {
+        choice choices: ['Baseline', 'APIS', 'Full'],
+            description: 'Type of scan that is going to perform inside the container',
+            name: 'SCAN_TYPE'
+            
+        string defaultValue: 'http://localhost:3000',
+            description: 'Target URL to scan',
+            name: 'TARGET'
+            
+        booleanParam defaultValue: true,
+            description: 'Parameter to know if you want to generate a report.',
+            name: 'GENERATE_REPORT'
+    }
     stages {
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
             }
         }
+
+        stage('Analisis Estatico con Semgrep') {
+            steps {
+                script {
+                    bat """
+                    docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
+                    """
+                }
+            }
+        }
+
+        stage('Archivar Reporte Semgrep') {
+            steps {
+                archiveArtifacts artifacts: '**/semgrep_report.json', allowEmptyArchive: true
+            }
+        }
+
 
         stage('Generar secrets.properties') {
             steps {
@@ -70,12 +101,58 @@ pipeline {
             }
         }
 
+
+
+    // FRONTEND STAGES /////////////////////////////////////////////////
+        stage('Checkout Frontend Repository') {
+            steps {
+                script {
+                    dir('frontend') {
+                        checkout([
+                            $class: 'GitSCM', 
+                            branches: [[name: '*/develop']], 
+                            extensions: [], 
+                            userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_frontend.git']]
+                        ])
+                    }
+                }
+            }
+        }
+
+        stage('Generar variables de entorno frontend') {
+            steps {
+                script {
+                    dir('frontend') {
+                        // Crear el archivo .env con los valores necesarios
+                        writeFile file: '.env', 
+                        text: '''
+                        NEXT_PUBLIC_API_URL=http://localhost:8090
+                        NEXTAUTH_SECRET=kDIoxobrY2ut97pwem58BNzVMxAhHXzI96A2vNLlM78=
+                        NEXTAUTH_URL=http://localhost:3000
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Ejecutar Docker Compose para Frontend') {
+            steps {
+                script {
+                    dir('frontend') {
+                        bat 'docker-compose up --build -d'
+                    }
+                }
+            }
+        }
+
+
     
     }
 
     post {
         always {
             bat 'docker-compose down'  
+            cleanWs()
              
         }
     }
