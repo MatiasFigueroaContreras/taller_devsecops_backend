@@ -148,7 +148,7 @@ pipeline {
                             /zap/zap-baseline.py \
                             -t $target \
                             -r report.html \
-                            -I
+                            -I \
                             -dir /zap/
                         """
                     } else if (scan_type == 'APIS') {
@@ -157,7 +157,7 @@ pipeline {
                             /zap/zap-api-scan.py \
                             -t $target \
                             -r report.html \
-                            -I
+                            -I \
                             -dir /zap/
                         """
                     } else if (scan_type == 'Full') {
@@ -166,7 +166,7 @@ pipeline {
                             /zap/zap-full-scan.py \
                             -t $target \
                             -r report.html \
-                            -I
+                            -I \
                             -dir /zap/
                         """
                     } else {
