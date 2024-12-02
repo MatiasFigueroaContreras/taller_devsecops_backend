@@ -145,26 +145,29 @@ pipeline {
                     if (scan_type == 'Baseline') {
                         bat """
                             docker exec owasp \
-                            zap-baseline.py \
+                            /zap/zap-baseline.py \
                             -t $target \
                             -r report.html \
                             -I
+                            -dir /zap/
                         """
                     } else if (scan_type == 'APIS') {
                         bat """
                             docker exec owasp \
-                            zap-api-scan.py \
+                            /zap/zap-api-scan.py \
                             -t $target \
                             -r report.html \
                             -I
+                            -dir /zap/
                         """
                     } else if (scan_type == 'Full') {
                         bat """
                             docker exec owasp \
-                            zap-full-scan.py \
+                            /zap/zap-full-scan.py \
                             -t $target \
                             -r report.html \
                             -I
+                            -dir /zap/
                         """
                     } else {
                         echo 'Something went wrong...'
@@ -195,7 +198,6 @@ pipeline {
                 docker stop owasp
                 docker rm owasp
             '''
-            cleanWs()
         }
     }
 }
