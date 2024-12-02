@@ -84,17 +84,6 @@ pipeline {
             }
         }
 
-        stage('Esperar a que ZAP esté listo') {
-            steps {
-                script {
-                    // Esperar unos segundos para asegurarnos de que ZAP esté listo antes de iniciar el escaneo
-                    bat 'timeout /t 30'
-                }
-            }
-        }
-
-
-
         // FRONTEND STAGES /////////////////////////////////////////////////
 
         stage('Checkout Frontend Repository') {
