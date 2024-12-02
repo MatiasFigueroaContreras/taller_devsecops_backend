@@ -2,8 +2,11 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'  // Especifica el nombre de la instalación de Maven configurada en Jenkins
+        maven 'Maven3'
         jdk 'jdk17'  
+    }
+    environment {
+        SEMGREP_APP_TOKEN = credentials('Semgrep')
     }
 
     parameters {
@@ -21,72 +24,18 @@ pipeline {
     }
 
     stages {
-        stage("Checkout Backend Repository") {
+        stage("Checkout Repositorys") {
             steps {
                 script {
-                    checkout([
-                        $class: 'GitSCM', 
-                        branches: [[name: '*/pipeline-test-mfc']], 
-                        extensions: [], 
-                        userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]
-                    ])
+                    dir('Backend'){
+                        checkout([
+                            $class: 'GitSCM', 
+                            branches: [[name: '*/pipeline-test-mfc']], 
+                            extensions: [], 
+                            userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]
+                        ])
+                    }
                 }
-            }
-        }
-
-        stage('Analisis Estatico con Semgrep') {
-            steps {
-                script {
-                    bat """
-                    docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
-                    """
-                }
-            }
-        }
-
-        stage('Archivar Reporte Semgrep') {
-            steps {
-                archiveArtifacts artifacts: '**/semgrep_report.json', allowEmptyArchive: true
-            }
-        }
-
-        stage('Generar secrets.properties') {
-            steps {
-                script {
-                    // Crear el archivo secrets.properties con los valores necesarios
-                    writeFile file: 'secrets.properties', text: '''admin.password=password
-                    admin.correo=correo@gmail.com
-                    admin.nombre=nombre
-                    admin.apellido_paterno=paterno
-                    admin.apellido_materno=materno
-                    jwt.secret_key=miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000'''
-                }
-            }
-        }
-
-        stage('Se compila el backend') {
-            steps {
-                script {
-                    bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
-                    bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
-                    bat 'echo %JAVA_HOME%'  // Imprime la variable de entorno JAVA_HOME
-                    bat 'java -version'  // Imprime la versión de Java
-                    bat 'mvn -v'  // Imprime la versión de Maven
-                    bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
-                }
-            }
-        }
-
-        stage('Construir y Ejecutar contenedor backend') {
-            steps {
-                script {
-                    bat 'docker-compose up --build -d'  // Ejecuta docker-compose usando 'bat' en Windows
-                }
-            }
-        }
-
-        stage('Checkout Frontend Repository') {
-            steps {
                 script {
                     dir('frontend') {
                         checkout([
@@ -97,14 +46,18 @@ pipeline {
                         ])
                     }
                 }
-            }
-        }
-
-        stage('Generar variables de entorno frontend') {
-            steps {
+                script {
+                    dir("Backend"){
+                        writeFile file: 'secrets.properties', text: '''admin.password=password
+                        admin.correo=correo@gmail.com
+                        admin.nombre=nombre
+                        admin.apellido_paterno=paterno
+                        admin.apellido_materno=materno
+                        jwt.secret_key=miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000'''
+                    }
+                }
                 script {
                     dir('frontend') {
-                        // Crear el archivo .env con los valores necesarios
                         writeFile file: '.env', 
                         text: '''
                         NEXT_PUBLIC_API_URL=http://localhost:8090
@@ -114,30 +67,56 @@ pipeline {
                     }
                 }
             }
+            
         }
-
-        stage('Ejecutar Docker Compose para Frontend') {
+        stage('Revisión SAST') {
             steps {
                 script {
+                    dir("Backend"){
+                        bat """
+                        docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
+                        """
+                    }
+                }
+                archiveArtifacts artifacts: '**/semgrep_report.json', allowEmptyArchive: true
+                
+                script {
+                    dir('frontend'){
+                        bat 'npm install'
+                    }
+                }
+                script {
+                    dir('frontend'){
+                        bat '''
+                            npm run lint:html
+                        '''
+                    }
+                }
+                archiveArtifacts artifacts: '**/reportes/reporte.html', allowEmptyArchive: true
+            }
+        }
+        stage('Compilación y ejecución de APP') {
+            steps {
+                script {
+                    dir("Backend"){
+                        bat 'mvn clean install -DskipTests=true'
+                    }
+                }
+                script {
+                    dir('Backend'){
+                        bat 'docker-compose up --build -d'
+                    }
                     dir('frontend') {
                         bat 'docker-compose up --build -d'
                     }
                 }
             }
         }
-
-        stage('Pull and Run OWASP ZAP Docker Image') {
+        stage('Revisión DAST') {
             steps {
                 script {
                     bat 'docker pull zaproxy/zap-stable'
-                    // bat 'docker run -d --name owasp -v %cd%:/zap/wrk/:rw -t zaproxy/zap-stable zap.sh -daemon -port 8080'
                 }
-            }
-        }
-
-        // Etapa para esperar que ZAP esté listo
-        stage('Escaneando el target con OWASP ZAP') {
-            steps {
                 script {
                     scan_type = "${params.SCAN_TYPE}"
                     echo "----> scan_type: $scan_type"
@@ -181,24 +160,10 @@ pipeline {
                 }
             }
         }
-
-        stage('Copy Report to Workspace') {
-            steps {
-                script {
-                    bat '''
-                        docker cp owasp:/zap/wrk/report.html ${WORKSPACE}/report.html
-                    '''
-                }
-            }
-        }
     }
 
     post {
         always {
-            echo 'Deteniendo y eliminando contenedor del backend'
-            bat 'docker-compose down' 
-            echo 'Deteniendo y eliminando contenedor del frontend'
-            bat 'cd frontend && docker-compose down'
             echo 'Remover OWASP ZAP container'
             bat '''
                 docker stop owasp
