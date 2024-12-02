@@ -52,20 +52,20 @@ pipeline {
                 }
             }
         }
-  stage('Ejecutar OWASP ZAP y generar reporte HTML') {
+        stage('Ejecutar OWASP ZAP y generar reporte JSON') {
             steps {
                 script {
-                    // Ejecutar el escaneo de ZAP y generar el reporte en HTML
-                    bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl http://milkstgo:8090 -last_scan_report /zap/reports/zap-report.html'
+                    // Ejecutar el escaneo de ZAP y generar el reporte en JSON
+                    bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl http://milkstgo:8090 -quickout /zap/reports/zap-report.json'
                 }
             }
         }
 
-        stage('Copiar Reporte HTML a la raíz del proyecto') {
+        stage('Copiar Reporte JSON a la raíz del proyecto') {
             steps {
                 script {
-                    // Copiar el archivo de reporte HTML desde el contenedor a la raíz del proyecto en Jenkins
-                    bat 'docker cp owasp_zap:/zap/reports/zap-report.html %WORKSPACE%/zap-report.html'
+                    // Copiar el archivo de reporte JSON desde el contenedor a la raíz del proyecto en Jenkins
+                    bat 'docker cp owasp_zap:/zap/reports/zap-report.json %WORKSPACE%/zap-report.json'
                 }
             }
         }
