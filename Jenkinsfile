@@ -128,16 +128,20 @@ pipeline {
         }
 
         // Escaneo OWASP ZAP
-        stage('Ejecutar OWASP ZAP y generar reporte JSON') {
-            steps {
-                script {
-                    echo "Escaneando la URL: ${params.TARGET}"
-                    bat """
-                    docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl %params.TARGET% -quickout /zap/reports/zap-report.json
-                    """
-                }
-            }
+stage('Ejecutar OWASP ZAP y generar reporte JSON') {
+    steps {
+        script {
+            // Asegurarte de que el valor de params.TARGET esté presente
+            echo "Escaneando la URL: ${params.TARGET}"
+            
+            // Usar el valor de la URL directamente sin % para variables en el entorno de Jenkins
+            bat """
+            docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl ${params.TARGET} -quickout /zap/reports/zap-report.json
+            """
         }
+    }
+}
+
 
         // Copiar reporte a la raíz del proyecto
         stage('Copiar Reporte JSON a la raíz del proyecto') {
