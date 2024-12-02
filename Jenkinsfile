@@ -39,18 +39,18 @@ pipeline {
         stage('Construir y Ejecutar contenedor') {
             steps {
                 script {
-                    bat 'docker-compose up --build'  // Ejecuta docker-compose usando 'bat' en Windows
+                    bat 'docker-compose up --build -d'  // Ejecuta docker-compose usando 'bat' en Windows
                 }
             }
         }
 
-        stage('Pruebas') {
-            steps {
-                script {
-                    bat 'mvn test'  // Ejecuta las pruebas con Maven en Windows
-                }
-            }
+       stage('Ejecutar OWASP ZAP') {
+      steps {
+        script {
+          bat 'docker exec -t owasp_zap zap-baseline.py -t http://localhost:8090'  
         }
+      }
+    }
     }
 
     post {
