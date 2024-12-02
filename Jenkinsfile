@@ -22,10 +22,11 @@ pipeline {
 
     stages {
         stage('Checkout Backend') {
-            steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
-            }
-        }
+    steps {
+        checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
+    }
+}
+
 
         stage('Analisis Estatico con Semgrep') {
             steps {
@@ -87,19 +88,20 @@ pipeline {
         // FRONTEND STAGES /////////////////////////////////////////////////
 
         stage('Checkout Frontend Repository') {
-            steps {
-                script {
-                    dir('frontend') {
-                        checkout([
-                            $class: 'GitSCM', 
-                            branches: [[name: '*/develop']], 
-                            extensions: [], 
-                            userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_frontend.git']]
-                        ])
-                    }
-                }
+    steps {
+        script {
+            dir('frontend') {
+                checkout([
+                    $class: 'GitSCM', 
+                    branches: [[name: 'refs/heads/develop']],  // Usar refs/heads en lugar de */
+                    extensions: [], 
+                    userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_frontend.git']]
+                ])
             }
         }
+    }
+}
+
 
         stage('Generar variables de entorno frontend') {
             steps {
