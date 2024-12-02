@@ -1,14 +1,52 @@
 pipeline {
     agent any
 
-  tools {
+    tools {
         maven 'Maven3'  // Especifica el nombre de la instalación de Maven configurada en Jenkins
         jdk 'jdk17'  
     }
+
+    parameters {
+        choice choices: ['Baseline', 'APIS', 'Full'],
+            description: 'Type of scan that is going to perform inside the container',
+            name: 'SCAN_TYPE'
+            
+        string defaultValue: 'http://localhost:3000',
+            description: 'Target URL to scan',
+            name: 'TARGET'
+            
+        booleanParam defaultValue: true,
+            description: 'Parameter to know if you want to generate a report.',
+            name: 'GENERATE_REPORT'
+    }
+
     stages {
-        stage('Checkout') {
+        stage("Checkout Backend Repository") {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
+                script {
+                    checkout([
+                        $class: 'GitSCM', 
+                        branches: [[name: '*/pipeline-test-mfc']], 
+                        extensions: [], 
+                        userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]
+                    ])
+                }
+            }
+        }
+
+        stage('Análisis Estático con Semgrep') {
+            steps {
+                script {
+                    bat """
+                    docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
+                    """
+                }
+            }
+        }
+
+        stage('Archivar Reporte Semgrep') {
+            steps {
+                archiveArtifacts artifacts: '**/semgrep_report.json', allowEmptyArchive: true
             }
         }
 
@@ -26,26 +64,17 @@ pipeline {
             }
         }
 
+        // stage('Compilación') {
+        //     steps {
+        //         script {
+        //             bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
+        //             bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
+        //             bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
+        //         }
+        //     }
+        // }
 
-            stage('Docker Login') {
-            steps {
-                script {
-                    // Inicia sesión en Docker Hub
-                    bat 'docker login -u gaspitas241 -p morrowind241'
-                }
-            }
-        }
-        stage('Compilación') {
-            steps {
-                script {
-                    bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
-                    bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
-                    bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
-                }
-            }
-        }
-
-        stage('Construir y Ejecutar contenedor') {
+        stage('Construir y Ejecutar contenedor backend') {
             steps {
                 script {
                     bat 'docker-compose up --build -d'  // Ejecuta docker-compose usando 'bat' en Windows
@@ -53,43 +82,116 @@ pipeline {
             }
         }
 
-        // Etapa para esperar que ZAP esté listo
-        stage('Esperar a que ZAP esté listo') {
+        stage('Checkout Frontend Repository') {
             steps {
                 script {
-                    // Intentar hasta 30 veces para ver si ZAP está listo
-                    def zapReady = false
-                    for (int i = 0; i < 30; i++) {
-                        try {
-                            def response = bat(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:8081", returnStdout: true).trim()
-                            if (response == "200") {
-                                zapReady = true
-                                break
-                            }
-                        } catch (Exception e) {
-                        }
-                        sleep(10)  
-                    }
-                    if (!zapReady) {
-                        error("ZAP no está disponible después de varios intentos.")
+                    dir('frontend') {
+                        checkout([
+                            $class: 'GitSCM', 
+                            branches: [[name: '*/develop']], 
+                            extensions: [], 
+                            userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_frontend.git']]
+                        ])
                     }
                 }
             }
         }
 
-        stage('Ejecutar OWASP ZAP') {
+        stage('Generar variables de entorno frontend') {
             steps {
                 script {
-                    bat 'docker exec -t owasp_zap zap-baseline.py -t http://localhost:8090'  
+                    dir('frontend') {
+                        // Crear el archivo .env con los valores necesarios
+                        writeFile file: '.env', 
+                        text: '''
+                        NEXT_PUBLIC_API_URL=http://localhost:8090
+                        NEXTAUTH_SECRET=kDIoxobrY2ut97pwem58BNzVMxAhHXzI96A2vNLlM78=
+                        NEXTAUTH_URL=http://localhost:3000
+                        '''
+                    }
                 }
             }
         }
-    
+
+        stage('Ejecutar Docker Compose para Frontend') {
+            steps {
+                script {
+                    dir('frontend') {
+                        bat 'docker-compose up --build -d'
+                    }
+                }
+            }
+        }
+
+        stage('Pull and Run OWASP ZAP Docker Image') {
+            steps {
+                script {
+                    bat 'docker pull owasp/zap2docker-stable:latest'
+                    bat 'docker run -dt --name owasp owasp/zap2docker-stable /bin/bash -p 9090:8080'
+                }
+            }
+        }
+
+        // Etapa para esperar que ZAP esté listo
+        stage('Escaneando el target con OWASP ZAP') {
+            steps {
+                script {
+                    scan_type = "${params.SCAN_TYPE}"
+                    echo "----> scan_type: $scan_type"
+                    target = "${params.TARGET}"
+                    if (scan_type == 'Baseline') {
+                        sh """
+                            docker exec owasp \
+                            zap-baseline.py \
+                            -t $target \
+                            -r report.html \
+                            -I
+                        """
+                    } else if (scan_type == 'APIS') {
+                        sh """
+                            docker exec owasp \
+                            zap-api-scan.py \
+                            -t $target \
+                            -r report.html \
+                            -I
+                        """
+                    } else if (scan_type == 'Full') {
+                        sh """
+                            docker exec owasp \
+                            zap-full-scan.py \
+                            -t $target \
+                            -r report.html \
+                            -I
+                        """
+                    } else {
+                        echo 'Something went wrong...'
+                    }
+                }
+            }
+        }
+
+        stage('Copy Report to Workspace') {
+            steps {
+                script {
+                    sh '''
+                        docker cp owasp:/zap/wrk/report.html ${WORKSPACE}/report.html
+                    '''
+                }
+            }
+        }
     }
 
     post {
         always {
-            bat 'docker-compose down'  
+            echo 'Deteniendo y eliminando contenedor del backend'
+            bat 'docker-compose down' 
+            echo 'Deteniendo y eliminando contenedor del frontend'
+            bat 'cd frontend && docker-compose down'
+            echo 'Remover OWASP ZAP container'
+            sh '''
+                docker stop owasp
+                docker rm owasp
+            '''
             cleanWs()  
         }
     }
