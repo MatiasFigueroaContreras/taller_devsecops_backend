@@ -56,7 +56,7 @@ pipeline {
                 steps {
                     script {
                         // Ejecutar el escaneo de ZAP utilizando el comando adecuado
-                        bat 'docker exec -t owasp_zap zap -cmd -quickurl http://localhost:8090'
+                        bat 'docker exec -t owasp_zap zap -cmd -quickurl http://milkstgo:8090'
                     }
                 }
             }
