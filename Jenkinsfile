@@ -127,15 +127,19 @@ pipeline {
             }
         }
 
-         stage('Ejecutar OWASP ZAP y generar reporte JSON') {
+        // Escaneo OWASP ZAP
+        stage('Ejecutar OWASP ZAP y generar reporte JSON') {
             steps {
                 script {
-                    // Ejecutar el escaneo de ZAP y generar el reporte en JSON
-                    bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl ${params.TARGET} -quickout /zap/reports/zap-report.json'
+                    echo "Escaneando la URL: ${params.TARGET}"
+                    bat """
+                    docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl %params.TARGET% -quickout /zap/reports/zap-report.json
+                    """
                 }
             }
         }
 
+        // Copiar reporte a la raíz del proyecto
         stage('Copiar Reporte JSON a la raíz del proyecto') {
             steps {
                 script {
@@ -144,7 +148,6 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
