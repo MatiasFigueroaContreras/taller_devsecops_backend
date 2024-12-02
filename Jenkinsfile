@@ -157,7 +157,7 @@ stage('Ejecutar OWASP ZAP y generar reporte JSON') {
     post {
         always {
             bat 'docker-compose down'  
-            cleanWs()
+            
         }
     }
 }
