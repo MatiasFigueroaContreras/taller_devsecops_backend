@@ -130,7 +130,7 @@ pipeline {
             steps {
                 script {
                     bat 'docker pull ghcr.io/zaproxy/zaproxy:stable'
-                    bat 'docker run -v %cd%:/zap/wrk/:rw -p 9090:8080 -t ghcr.io/zaproxy/zaproxy:stable -daemon -port 9090:8080 -config api.disablekey=true --name owasp'
+                    bat 'docker run -v %cd%:/zap/wrk/:rw -p 9090:8080 ghcr.io/zaproxy/zaproxy:stable zap-x11 -daemon -port 8080 -config api.disablekey=true --name owasp'
                     // bat 'docker run -dt --name owasp ghcr.io/zaproxy/zaproxy:stable /bin/bash -p 9090:8080'
                     // bat 'docker exec owasp mkdir /zap/wrk'
                 }
