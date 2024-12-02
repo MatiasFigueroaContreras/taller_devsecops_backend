@@ -1,12 +1,12 @@
 pipeline {
     agent any
 
-  tools {
+    tools {
         maven 'Maven3'  // Especifica el nombre de la instalación de Maven configurada en Jenkins
         jdk 'jdk17'  
     }
 
-     parameters {
+    parameters {
         choice choices: ['Baseline', 'APIS', 'Full'],
             description: 'Type of scan that is going to perform inside the container',
             name: 'SCAN_TYPE'
@@ -19,8 +19,9 @@ pipeline {
             description: 'Parameter to know if you want to generate a report.',
             name: 'GENERATE_REPORT'
     }
+
     stages {
-        stage('Checkout') {
+        stage('Checkout Backend') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
             }
@@ -42,7 +43,6 @@ pipeline {
             }
         }
 
-
         stage('Generar secrets.properties') {
             steps {
                 script {
@@ -57,8 +57,7 @@ pipeline {
             }
         }
 
-
-            stage('Docker Login') {
+        stage('Docker Login') {
             steps {
                 script {
                     // Inicia sesión en Docker Hub
@@ -66,6 +65,7 @@ pipeline {
                 }
             }
         }
+
         stage('Compilación') {
             steps {
                 script {
@@ -83,27 +83,20 @@ pipeline {
                 }
             }
         }
-        stage('Ejecutar OWASP ZAP y generar reporte JSON') {
-            steps {
-                script {
-                    // Ejecutar el escaneo de ZAP y generar el reporte en JSON
-                    bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl http://milkstgo:8090 -quickout /zap/reports/zap-report.json'
-                }
-            }
-        }
 
-        stage('Copiar Reporte JSON a la raíz del proyecto') {
+        stage('Esperar a que ZAP esté listo') {
             steps {
                 script {
-                    // Copiar el archivo de reporte JSON desde el contenedor a la raíz del proyecto en Jenkins
-                    bat 'docker cp owasp_zap:/zap/reports/zap-report.json %WORKSPACE%/zap-report.json'
+                    // Esperar unos segundos para asegurarnos de que ZAP esté listo antes de iniciar el escaneo
+                    bat 'timeout /t 30'
                 }
             }
         }
 
 
 
-    // FRONTEND STAGES /////////////////////////////////////////////////
+        // FRONTEND STAGES /////////////////////////////////////////////////
+
         stage('Checkout Frontend Repository') {
             steps {
                 script {
@@ -145,15 +138,30 @@ pipeline {
             }
         }
 
+         stage('Ejecutar OWASP ZAP y generar reporte JSON') {
+            steps {
+                script {
+                    // Ejecutar el escaneo de ZAP y generar el reporte en JSON
+                    bat 'docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl ${params.TARGET} -quickout /zap/reports/zap-report.json'
+                }
+            }
+        }
 
-    
+        stage('Copiar Reporte JSON a la raíz del proyecto') {
+            steps {
+                script {
+                    // Copiar el archivo de reporte JSON desde el contenedor a la raíz del proyecto en Jenkins
+                    bat 'docker cp owasp_zap:/zap/reports/zap-report.json %WORKSPACE%/zap-report.json'
+                }
+            }
+        }
+
     }
 
     post {
         always {
             bat 'docker-compose down'  
             cleanWs()
-             
         }
     }
 }
