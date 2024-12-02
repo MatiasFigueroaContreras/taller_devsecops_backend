@@ -129,8 +129,8 @@ pipeline {
         stage('Pull and Run OWASP ZAP Docker Image') {
             steps {
                 script {
-                    bat 'docker pull ghcr.io/zaproxy/zaproxy:stable'
-                    bat 'docker run --name owasp -v %cd%:/zap/wrk/:rw -p 9090:8080 ghcr.io/zaproxy/zaproxy:stable'
+                    bat 'docker pull zaproxy/zap-stable'
+                    bat 'docker run --name owasp -v %cd%:/zap/wrk/:rw -p 9090:8080 -t zaproxy/zap-stable zap.sh -daemon -port 8080 -config api.disablekey=true'
                 }
             }
         }
