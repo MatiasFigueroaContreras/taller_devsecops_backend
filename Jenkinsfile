@@ -64,18 +64,18 @@ pipeline {
             }
         }
 
-        // stage('Se compila el backend') {
-        //     steps {
-        //         script {
-        //             bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
-        //             bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
-        //             bat 'echo %JAVA_HOME%'  // Imprime la variable de entorno JAVA_HOME
-        //             bat 'java -version'  // Imprime la versión de Java
-        //             bat 'mvn -v'  // Imprime la versión de Maven
-        //             bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
-        //         }
-        //     }
-        // }
+        stage('Se compila el backend') {
+            steps {
+                script {
+                    bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
+                    bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
+                    bat 'echo %JAVA_HOME%'  // Imprime la variable de entorno JAVA_HOME
+                    bat 'java -version'  // Imprime la versión de Java
+                    bat 'mvn -v'  // Imprime la versión de Maven
+                    bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
+                }
+            }
+        }
 
         stage('Construir y Ejecutar contenedor backend') {
             steps {
