@@ -69,7 +69,7 @@ pipeline {
                 script {
                     bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
                     bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
-                    bat 'mvn clean package -DskipTests=true'  // Ejecutar Maven en Windows
+                    bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
                 }
             }
         }
@@ -192,7 +192,7 @@ pipeline {
                 docker stop owasp
                 docker rm owasp
             '''
-            cleanWs()  
+            cleanWs()
         }
     }
 }
