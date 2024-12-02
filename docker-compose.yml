@@ -30,7 +30,7 @@ services:
       restart_policy:
         condition: on-failure
   zap:
-    image: owasp/zap2docker-stable
+    image: owasp/zap2docker-weekly
     container_name: owasp_zap
     ports:
       - "8081:8080"  
