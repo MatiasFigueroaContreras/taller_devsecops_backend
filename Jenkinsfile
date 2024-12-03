@@ -11,23 +11,19 @@ pipeline {
 
     parameters {
         choice choices: ['Baseline', 'APIS', 'Full'],
-            description: 'Type of scan that is going to perform inside the container',
+            description: 'Tipo de escaneo que se va a realizar dentro del contenedor',
             name: 'SCAN_TYPE'
             
         string defaultValue: 'http://localhost:3000',
-            description: 'Target URL to scan',
+            description: 'URL de la aplicacion a escanear',
             name: 'TARGET'
-            
-        booleanParam defaultValue: true,
-            description: 'Parameter to know if you want to generate a report.',
-            name: 'GENERATE_REPORT'
     }
 
     stages {
-        stage("Checkout Repositorys") {
+        stage("Obtener repositorios") {
             steps {
                 script {
-                    dir('Backend'){
+                    dir('backend'){
                         checkout([
                             $class: 'GitSCM', 
                             branches: [[name: '*/pipeline-test-mfc']], 
@@ -47,20 +43,22 @@ pipeline {
                     }
                 }
                 script {
-                    dir("Backend"){
-                        writeFile file: 'secrets.properties', text: '''admin.password=password
-                        admin.correo=correo@gmail.com
-                        admin.nombre=nombre
+                    dir("backend"){
+                        writeFile file: 'secrets.properties', text: '''
+                        admin.password=adminpass1234
+                        admin.correo=admin@milkstgo.cl
+                        admin.nombre=admin
                         admin.apellido_paterno=paterno
                         admin.apellido_materno=materno
-                        jwt.secret_key=miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000'''
+                        jwt.secret_key=4D6251655468576D5A7134743777217A24432646294A404E635266556A586E32
+                        '''
                     }
                 }
                 script {
                     dir('frontend') {
                         writeFile file: '.env', 
                         text: '''
-                        NEXT_PUBLIC_API_URL=http://localhost:8090
+                        NEXT_PUBLIC_API_URL=http://host.docker.internal:8090
                         NEXTAUTH_SECRET=kDIoxobrY2ut97pwem58BNzVMxAhHXzI96A2vNLlM78=
                         NEXTAUTH_URL=http://localhost:3000
                         '''
@@ -69,10 +67,10 @@ pipeline {
             }
             
         }
-        stage('Revisión SAST') {
+        stage('Ejecucion analisis SAST') {
             steps {
                 script {
-                    dir("Backend"){
+                    dir("backend"){
                         bat """
                         docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
                         """
@@ -95,15 +93,15 @@ pipeline {
                 archiveArtifacts artifacts: '**/reportes/reporte.html', allowEmptyArchive: true
             }
         }
-        stage('Compilación y ejecución de APP') {
+        stage('Compilacion y ejecucion de APP') {
             steps {
                 script {
-                    dir("Backend"){
+                    dir("backend"){
                         bat 'mvn clean install -DskipTests=true'
                     }
                 }
                 script {
-                    dir('Backend'){
+                    dir('backend'){
                         bat 'docker-compose up --build -d'
                     }
                     dir('frontend') {
@@ -112,7 +110,7 @@ pipeline {
                 }
             }
         }
-        stage('Revisión DAST') {
+        stage('Ejecucion analisis DAST') {
             steps {
                 script {
                     bat 'docker pull zaproxy/zap-stable'
@@ -129,7 +127,7 @@ pipeline {
                             zaproxy/zap-stable \
                             zap-baseline.py \
                             -t $target \
-                            -r report.html \
+                            -r dast_report.html \
                             -I 
                         """
                     } else if (scan_type == 'APIS') {
@@ -140,7 +138,7 @@ pipeline {
                             zaproxy/zap-stable \
                             zap-api-scan.py \
                             -t $target \
-                            -r report.html \
+                            -r dast_report.html \
                             -I 
                         """
                     } else if (scan_type == 'Full') {
@@ -151,12 +149,15 @@ pipeline {
                             zaproxy/zap-stable \
                             zap-full-scan.py \
                             -t $target \
-                            -r report.html \
+                            -r dast_report.html \
                             -I 
                         """
                     } else {
                         echo 'Something went wrong...'
                     }
+                }
+                script {
+                    archiveArtifacts artifacts: 'dast_report.html', allowEmptyArchive: true
                 }
             }
         }
