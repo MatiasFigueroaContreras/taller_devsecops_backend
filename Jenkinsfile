@@ -26,7 +26,7 @@ pipeline {
                     dir('backend'){
                         checkout([
                             $class: 'GitSCM', 
-                            branches: [[name: '*/pipeline-test-mfc']], 
+                            branches: [[name: '*/develop']], 
                             extensions: [], 
                             userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]
                         ])
@@ -199,7 +199,7 @@ Logs completos: ${BUILD_URL}console"""
                 def formattedDate = date.format('yyyy-MM-dd HH:mm:ss')
                 emailext(
                     to: 'ignacio.moreira@usach.cl, gaspar.catalan@usach.cl, matias.figueroa.c@usach.cl, cristobal.marchant@usach.cl',
-                    from: 'mteam@gmail.com',
+                    from: 'ignaciomoreiracarvach@gmail.com',
                     subject: "Pipeline de Jenkins: ¡Fallo en la ejecución! (${currentBuild.fullDisplayName})",
                     body: """El pipeline de Jenkins ${currentBuild.fullDisplayName} falló durante su ejecución.
 Detalles: 
