@@ -2,155 +2,162 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'  // Especifica el nombre de la instalación de Maven configurada en Jenkins
+        maven 'Maven3'
         jdk 'jdk17'  
+    }
+    environment {
+        SEMGREP_APP_TOKEN = credentials('Semgrep')
     }
 
     parameters {
         choice choices: ['Baseline', 'APIS', 'Full'],
-            description: 'Type of scan that is going to perform inside the container',
+            description: 'Tipo de escaneo que se va a realizar dentro del contenedor',
             name: 'SCAN_TYPE'
             
         string defaultValue: 'http://localhost:3000',
-            description: 'Target URL to scan',
+            description: 'URL de la aplicacion a escanear',
             name: 'TARGET'
-            
-        booleanParam defaultValue: true,
-            description: 'Parameter to know if you want to generate a report.',
-            name: 'GENERATE_REPORT'
     }
 
     stages {
-        stage('Checkout Backend') {
-    steps {
-        checkout([$class: 'GitSCM', branches: [[name: '*/develop']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]])
-    }
-}
-
-
-        stage('Analisis Estatico con Semgrep') {
+        stage("Obtener repositorios") {
             steps {
                 script {
-                    bat """
-                    docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
-                    """
+                    dir('backend'){
+                        checkout([
+                            $class: 'GitSCM', 
+                            branches: [[name: '*/pipeline-test-mfc']], 
+                            extensions: [], 
+                            userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_backend.git']]
+                        ])
+                    }
                 }
-            }
-        }
-
-        stage('Archivar Reporte Semgrep') {
-            steps {
-                archiveArtifacts artifacts: '**/semgrep_report.json', allowEmptyArchive: true
-            }
-        }
-
-        stage('Generar secrets.properties') {
-            steps {
-                script {
-                    // Crear el archivo secrets.properties con los valores necesarios
-                    writeFile file: 'secrets.properties', text: '''admin.password=password
-                    admin.correo=correo@gmail.com
-                    admin.nombre=nombre
-                    admin.apellido_paterno=paterno
-                    admin.apellido_materno=materno
-                    jwt.secret_key=miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000miClaveSecretaDe32Caracteres0000'''
-                }
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                script {
-                    // Inicia sesión en Docker Hub
-                    bat 'docker login -u gaspitas241 -p morrowind241'
-                }
-            }
-        }
-
-        stage('Compilación') {
-            steps {
-                script {
-                    bat 'echo %cd%'  // En lugar de 'sh', usa 'bat' para ejecutar comandos en Windows
-                    bat 'dir'  // En lugar de 'ls -la', usa 'dir' para listar los archivos en Windows
-                    bat 'mvn clean install -DskipTests=true'  // Ejecutar Maven en Windows
-                }
-            }
-        }
-
-        stage('Construir y Ejecutar contenedor') {
-            steps {
-                script {
-                    bat 'docker-compose up --build -d'  // Ejecuta docker-compose usando 'bat' en Windows
-                }
-            }
-        }
-
-        // FRONTEND STAGES /////////////////////////////////////////////////
-
-        stage('Checkout Frontend Repository') {
-    steps {
-        script {
-            dir('frontend') {
-                checkout([
-                    $class: 'GitSCM', 
-                    branches: [[name: '*/develop']],  // Usar refs/heads en lugar de */
-                    extensions: [], 
-                    userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_frontend.git']]
-                ])
-            }
-        }
-    }
-}
-
-
-        stage('Generar variables de entorno frontend') {
-            steps {
                 script {
                     dir('frontend') {
-                        // Crear el archivo .env con los valores necesarios
+                        checkout([
+                            $class: 'GitSCM', 
+                            branches: [[name: '*/develop']], 
+                            extensions: [], 
+                            userRemoteConfigs: [[url: 'https://github.com/MatiasFigueroaContreras/taller_devsecops_frontend.git']]
+                        ])
+                    }
+                }
+                script {
+                    dir("backend"){
+                        writeFile file: 'secrets.properties', text: '''
+                        admin.password=adminpass1234
+                        admin.correo=admin@milkstgo.cl
+                        admin.nombre=admin
+                        admin.apellido_paterno=paterno
+                        admin.apellido_materno=materno
+                        jwt.secret_key=4D6251655468576D5A7134743777217A24432646294A404E635266556A586E32
+                        '''
+                    }
+                }
+                script {
+                    dir('frontend') {
                         writeFile file: '.env', 
                         text: '''
-                        NEXT_PUBLIC_API_URL=http://localhost:8090
+                        NEXT_PUBLIC_API_URL=http://host.docker.internal:8090
                         NEXTAUTH_SECRET=kDIoxobrY2ut97pwem58BNzVMxAhHXzI96A2vNLlM78=
                         NEXTAUTH_URL=http://localhost:3000
                         '''
                     }
                 }
             }
+            
         }
-
-        stage('Ejecutar Docker Compose para Frontend') {
+        stage('Ejecucion analisis SAST') {
             steps {
                 script {
+                    dir("backend"){
+                        bat """
+                        docker run -e SEMGREP_APP_TOKEN=${env.SEMGREP_APP_TOKEN} --rm -v "%cd%:/src" semgrep/semgrep semgrep ci --json --output /src/semgrep_report.json
+                        """
+                    }
+                }
+                archiveArtifacts artifacts: '**/semgrep_report.json', allowEmptyArchive: true
+                
+                script {
+                    dir('frontend'){
+                        bat 'npm install'
+                    }
+                }
+                script {
+                    dir('frontend'){
+                        bat '''
+                            npm run lint:html
+                        '''
+                    }
+                }
+                archiveArtifacts artifacts: '**/reportes/reporte.html', allowEmptyArchive: true
+            }
+        }
+        stage('Compilacion y ejecucion de APP') {
+            steps {
+                script {
+                    dir("backend"){
+                        bat 'mvn clean install -DskipTests=true'
+                    }
+                }
+                script {
+                    dir('backend'){
+                        bat 'docker-compose up --build -d'
+                    }
                     dir('frontend') {
                         bat 'docker-compose up --build -d'
                     }
                 }
             }
         }
-
-        // Escaneo OWASP ZAP
-stage('Ejecutar OWASP ZAP y generar reporte JSON') {
-    steps {
-        script {
-            // Asegurarte de que el valor de params.TARGET esté presente
-            echo "Escaneando la URL: ${params.TARGET}"
-            
-            // Usar el valor de la URL directamente sin % para variables en el entorno de Jenkins
-            bat """
-            docker exec -t owasp_zap /zap/zap.sh -cmd -quickurl ${params.TARGET} -quickout /zap/reports/zap-report.json
-            """
-        }
-    }
-}
-
-
-        // Copiar reporte a la raíz del proyecto
-        stage('Copiar Reporte JSON a la raíz del proyecto') {
+        stage('Ejecucion analisis DAST') {
             steps {
                 script {
-                    // Copiar el archivo de reporte JSON desde el contenedor a la raíz del proyecto en Jenkins
-                    bat 'docker cp owasp_zap:/zap/reports/zap-report.json %WORKSPACE%/zap-report.json'
+                    bat 'docker pull zaproxy/zap-stable'
+                }
+                script {
+                    scan_type = "${params.SCAN_TYPE}"
+                    echo "----> scan_type: $scan_type"
+                    target = "${params.TARGET}"
+                    if (scan_type == 'Baseline') {
+                        bat """
+                            docker run --name owasp \
+                            -v %cd%:/zap/wrk/:rw \
+                            --network="host" \
+                            zaproxy/zap-stable \
+                            zap-baseline.py \
+                            -t $target \
+                            -r dast_report.html \
+                            -I 
+                        """
+                    } else if (scan_type == 'APIS') {
+                        bat """
+                         docker run --name owasp \
+                            -v %cd%:/zap/wrk/:rw \
+                            --network="host" \
+                            zaproxy/zap-stable \
+                            zap-api-scan.py \
+                            -t $target \
+                            -r dast_report.html \
+                            -I 
+                        """
+                    } else if (scan_type == 'Full') {
+                        bat """
+                         docker run --name owasp \
+                            -v %cd%:/zap/wrk/:rw \
+                            --network="host" \
+                            zaproxy/zap-stable \
+                            zap-full-scan.py \
+                            -t $target \
+                            -r dast_report.html \
+                            -I 
+                        """
+                    } else {
+                        echo 'Something went wrong...'
+                    }
+                }
+                script {
+                    archiveArtifacts artifacts: 'dast_report.html', allowEmptyArchive: true
                 }
             }
         }
@@ -158,8 +165,11 @@ stage('Ejecutar OWASP ZAP y generar reporte JSON') {
 
     post {
         always {
-            bat 'docker-compose down'  
-            cleanWs()
+            echo 'Remover OWASP ZAP container'
+            bat '''
+                docker stop owasp
+                docker rm owasp
+            '''
         }
     }
 }
