@@ -42,21 +42,20 @@ public class DataLoader implements CommandLineRunner {
         String adminNombre = env.getProperty("admin.nombre");
         String adminApellidoPaterno = env.getProperty("admin.apellido_paterno");
         String adminApellidoMaterno = env.getProperty("admin.apellido_materno");
-        if(jpaHibernateDDL.equals("create")) {
-            RolEntity adminRol = new RolEntity(1L, "ADMINISTRADOR");
-            UsuarioEntity admin = UsuarioEntity.builder()
-                    .rol(adminRol)
-                    .correo(adminCorreo)
-                    .nombre(adminNombre)
-                    .apellidoPaterno(adminApellidoPaterno)
-                    .apellidoMaterno(adminApellidoMaterno)
-                    .password(adminPassword).build();
-            try {
-                usuarioService.registrarUsuario(admin);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
+
+        RolEntity adminRol = new RolEntity(1L, "ADMINISTRADOR");
+        UsuarioEntity admin = UsuarioEntity.builder()
+                .id(1L)
+                .rol(adminRol)
+                .correo(adminCorreo)
+                .nombre(adminNombre)
+                .apellidoPaterno(adminApellidoPaterno)
+                .apellidoMaterno(adminApellidoMaterno)
+                .password(adminPassword).build();
+        try {
+            usuarioService.registrarUsuario(admin);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
-
 }
