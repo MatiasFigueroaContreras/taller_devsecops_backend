@@ -171,5 +171,48 @@ pipeline {
                 docker rm owasp
             '''
         }
+        success {
+            script {
+                def date = new Date()
+                def formattedDate = date.format('yyyy-MM-dd HH:mm:ss')
+                emailext(
+                    to: 'ignacio.moreira@usach.cl, gaspar.catalan@usach.cl, matias.figueroa.c@usach.cl, cristobal.marchant@usach.cl',
+                    from: 'ignaciomoreiracarvach@gmail.com,',
+                    subject: "Pipeline de Jenkins: ¡La ejecución terminó exitosamente! (${currentBuild.fullDisplayName})",
+                    body: """El pipeline de Jenkins ${currentBuild.fullDisplayName} terminó su ejecución sin fallos.
+Detalles: 
+- Estado: Exitoso 
+- Nombre del pipeline: ${currentBuild.fullDisplayName}
+- Fecha de ejecución: ${formattedDate}
+
+Puedes ver los detalles del job en el siguiente enlace: 
+${BUILD_URL}
+                
+Logs completos: ${BUILD_URL}console"""
+            )
+            }
+        }
+        
+       failure {
+            script {
+                def date = new Date()
+                def formattedDate = date.format('yyyy-MM-dd HH:mm:ss')
+                emailext(
+                    to: 'ignacio.moreira@usach.cl, gaspar.catalan@usach.cl, matias.figueroa.c@usach.cl, cristobal.marchant@usach.cl',
+                    from: 'mteam@gmail.com',
+                    subject: "Pipeline de Jenkins: ¡Fallo en la ejecución! (${currentBuild.fullDisplayName})",
+                    body: """El pipeline de Jenkins ${currentBuild.fullDisplayName} falló durante su ejecución.
+Detalles: 
+- Estado: Fallido 
+- Nombre del pipeline: ${currentBuild.fullDisplayName}
+- Fecha de ejecución: ${formattedDate}
+
+Puedes ver los detalles del job en el siguiente enlace: 
+${BUILD_URL}
+                
+Logs completos: ${BUILD_URL}console"""
+            )
+            }
+        }
     }
 }
